@@ -14,14 +14,14 @@ Pull requests are disabled but feel free to report any issue or feature request.
 
 ## Usage
 
-##### Installation
+#### Installation
 
 Installing the driver is as simple as cloning this repository into your project. 
 
 `git clone https://github.com/MultiversumBlockchain/driver-java.git`
 
 
-##### Example
+#### Example
 
 ```java
 import java.sql.Statement;
@@ -32,9 +32,9 @@ import io.multiversum.db.driver.MTVDriver;
 
 public class Foo {
 	private final String host = "127.0.0.1";
-    private final int port = 8545;
-    private final String privateKey = "0x...";
-    private final String databaseAddress = "0x...";
+	private final int port = 8545;
+	private final String privateKey = "0x...";
+	private final String databaseAddress = "0x...";
 	private final String connectionUri = "jdbc:mtv://%s:%d/%s?key=%s";
 
 	public static void main(String[] args) {
