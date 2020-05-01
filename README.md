@@ -1,4 +1,4 @@
-# Mutliversum's JDBC driver
+# Multiversum's JDBC driver
 
 #### Note: this software is still a work in progress and is subject to heavy refactoring and modifications. It is not advised to use it in a production environment and to rely on its public interfaces.
 
