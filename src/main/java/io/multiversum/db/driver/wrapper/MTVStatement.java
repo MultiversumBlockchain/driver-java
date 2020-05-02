@@ -41,15 +41,16 @@ public class MTVStatement implements Statement {
 		}
 		
 		if (result.getResult() == null) {
-			return new MTVResultSet(new ArrayList<List<String>>());	
+			return new MTVResultSet(this, new ArrayList<List<String>>());	
 		} else if (result instanceof SelectResult) {
 			return new MTVResultSet(
+				this,
 				((SelectResult) result).getValues(),
 				((SelectResult) result).getAliases()
 			);
 		}
 		
-		return new MTVResultSet(new ArrayList<List<String>>());	
+		return new MTVResultSet(this, new ArrayList<List<String>>());	
 	}
 
 	@Override
@@ -127,7 +128,7 @@ public class MTVStatement implements Statement {
 
 	@Override
 	public ResultSet getResultSet() throws SQLException {
-		return new MTVResultSet(new ArrayList<List<String>>());
+		return new MTVResultSet(this, new ArrayList<List<String>>());
 	}
 
 	@Override
