@@ -38,21 +38,21 @@ public class Foo {
 	private final String connectionUri = "jdbc:mtv://%s:%d/%s?key=%s";
 
 	public static void main(String[] args) {
-    	String uri = String.format(connectionUri, host, port, databaseAddress, privateKey);
-        Connection conn = new MTVDriver().connect(uri, new Properties());
-        
-        Statement statement = conn.createStatement();
-        statement.executeQuery(
-				"create table users ("
-				+ "id int,"
-				+ "firstname varchar,"
-				+ "lastname varchar,"
-				+ "email varchar,"
-				+ "is_admin bool,"
-				+ "created_at datetime,"
-				+ "balance double"
-				+ ")"
-			);
+		String uri = String.format(connectionUri, host, port, databaseAddress, privateKey);
+		Connection conn = new MTVDriver().connect(uri, new Properties());
+		
+		Statement statement = conn.createStatement();
+		statement.executeQuery(
+			"create table users ("
+			+ "id int,"
+			+ "firstname varchar,"
+			+ "lastname varchar,"
+			+ "email varchar,"
+			+ "is_admin bool,"
+			+ "created_at datetime,"
+			+ "balance double"
+			+ ")"
+		);
     }
 }
 ```
