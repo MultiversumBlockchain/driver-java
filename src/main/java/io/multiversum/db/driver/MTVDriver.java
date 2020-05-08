@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 import org.slf4j.LoggerFactory;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
+import org.web3j.protocol.Web3j;
+
 import io.multiversum.db.driver.wrapper.MTVConnection;
 
 public class MTVDriver implements java.sql.Driver {
@@ -85,6 +87,17 @@ public class MTVDriver implements java.sql.Driver {
 
 			// Create new connection
 			return new MTVConnection(host, port, uri.getPath().substring(1), credentials);
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			throw new SQLException("Failed to initialize connection");
+		}
+	}
+	
+	public Connection connect(Web3j web3, Credentials credentials, String schema) throws SQLException {
+		try {
+			// Create new connection
+			return new MTVConnection(web3, credentials, schema);
 		} catch (Exception e) {
 			e.printStackTrace();
 			

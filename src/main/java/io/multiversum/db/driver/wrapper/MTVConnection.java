@@ -56,6 +56,12 @@ public class MTVConnection implements Connection {
 		this.web3 = connectToNode();
 	}
 	
+	public MTVConnection(Web3j web3, Credentials credentials, String schema) {
+		this.web3 = web3;
+		this.schema = schema;
+		this.credentials = credentials;
+	}
+	
 	public Web3j getWeb3() {
 		return this.web3;
 	}
