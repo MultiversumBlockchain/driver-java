@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 
 public class ShowTablesCommand extends BaseSqlCommand {
 
@@ -14,27 +16,33 @@ public class ShowTablesCommand extends BaseSqlCommand {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public CommandResult<List<String>> run(CommandQueueExecutor executor) throws Exception {
+	public CommandResult run(CommandQueueExecutor executor) throws Exception {
 		List<byte[]> tables = null;
 		
 		tables = executor.getContract().showTables().send();
 		
 		if (tables == null) {
-			return this.<List<String>>result().setResult(new ArrayList<String>());
+			return result();
 		}
 		
-		List<String> result = new ArrayList<String>();
+		List<String> resultColumns = new ArrayList<String>();
+		List<ResultRow> resultRows = new ArrayList<ResultRow>();
+		
+		resultColumns.add("tables");
+		
 		for (int i = 0; i < tables.size(); i += 2) {
 			ByteBuffer wrapper = ByteBuffer.wrap(tables.get(i));
 			
 			String index = "" + wrapper.getLong();
 			String name = new String(tables.get(i + 1)).trim();
 			
-			result.add(index);
-			result.add(name);
+			List<String> columns = new ArrayList<String>();
+			columns.add(name);
+			
+			resultRows.add(new ResultRow(index, columns));
 		}
 		
-		return this.<List<String>>result().setResult(result);
+		return result().setResult(resultColumns, resultRows);
 	}
 
 }

@@ -6,11 +6,10 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 
 import io.multiversum.db.executor.Executor.Options;
-import io.multiversum.db.executor.core.commands.CommandResult;
-import io.multiversum.db.executor.core.commands.results.SelectResult;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 
 public class MTVStatement implements Statement {
 	private MTVConnection connection;
@@ -22,7 +21,7 @@ public class MTVStatement implements Statement {
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
-		CommandResult<?> result = null;
+		CommandResult result = null;
 		
 		try {
 			Options options = new Options(
@@ -40,17 +39,15 @@ public class MTVStatement implements Statement {
 			throw new SQLException(e.getMessage());
 		}
 		
-		if (result.getResult() == null) {
-			return new MTVResultSet(this, new ArrayList<List<String>>());	
-		} else if (result instanceof SelectResult) {
+		if (result.getRows().size() > 0) {
 			return new MTVResultSet(
 				this,
-				((SelectResult) result).getValues(),
-				((SelectResult) result).getAliases()
+				result.getRows(),
+				result.getColumnNames()
 			);
 		}
 		
-		return new MTVResultSet(this, new ArrayList<List<String>>());	
+		return new MTVResultSet(this, new ArrayList<ResultRow>());
 	}
 
 	@Override
@@ -128,7 +125,7 @@ public class MTVStatement implements Statement {
 
 	@Override
 	public ResultSet getResultSet() throws SQLException {
-		return new MTVResultSet(this, new ArrayList<List<String>>());
+		return new MTVResultSet(this, new ArrayList<ResultRow>());
 	}
 
 	@Override

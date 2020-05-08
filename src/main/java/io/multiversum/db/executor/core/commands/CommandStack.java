@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Stack;
 
+import io.multiversum.db.executor.core.commands.results.CommandResult;
+
 public class CommandStack {
 
 	private static final ArrayList<SqlCommand> commands = new ArrayList<SqlCommand>();
-	private static final Stack<Object> results = new Stack<Object>();
+	private static final Stack<CommandResult> results = new Stack<CommandResult>();
 	
 	public static SqlCommand pop() {
 		try {
@@ -21,11 +23,11 @@ public class CommandStack {
 		commands.add(command);
 	}
 	
-	public static void pushResult(Object result) {
+	public static void pushResult(CommandResult result) {
 		results.push(result);
 	}
 	
-	public static Object popResult() {
+	public static CommandResult popResult() {
 		try {
 			return results.pop();
 		} catch (EmptyStackException e) {

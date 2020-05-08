@@ -1,6 +1,7 @@
 package io.multiversum.db.executor.core.commands;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
 
 public class BaseSqlCommand implements SqlCommand {
 
@@ -16,12 +17,12 @@ public class BaseSqlCommand implements SqlCommand {
 	}
 	
 	@Override
-	public CommandResult<?> run(CommandQueueExecutor executor) throws Exception {
-		return (new CommandResult<Boolean>()).setResult(false);
+	public CommandResult run(CommandQueueExecutor executor) throws Exception {
+		return result();
 	}
 	
-	protected <T> CommandResult<T> result() {
-		return new CommandResult<T>();
+	protected CommandResult result() {
+		return new CommandResult();
 	}
 	
 }

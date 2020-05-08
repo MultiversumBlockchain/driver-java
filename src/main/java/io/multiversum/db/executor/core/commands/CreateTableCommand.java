@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
 import io.multiversum.db.executor.core.commands.util.DatabaseUtility;
 import io.multiversum.db.executor.core.contracts.ColumnType;
 import io.multiversum.db.executor.core.exceptions.TableNotFoundException;
@@ -34,10 +35,10 @@ public class CreateTableCommand extends BaseSqlCommand {
 	}
 	
 	@Override
-	public CommandResult<Boolean> run(CommandQueueExecutor executor) throws Exception {
+	public CommandResult run(CommandQueueExecutor executor) throws Exception {
 		if (ifNotExists) {
 			if (doesTableExists(executor)) {
-				return this.<Boolean>result().setResult(true);
+				return result();
 			}
 		}
 		
@@ -46,7 +47,7 @@ public class CreateTableCommand extends BaseSqlCommand {
 		
 		executor.getContract().createTable(tableName, columns).send();
 		
-		return this.<Boolean>result().setResult(true);
+		return result();
 	}
 	
 	private boolean doesTableExists(CommandQueueExecutor executor) throws Exception {

@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
-import io.multiversum.db.executor.core.commands.results.SelectResult;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 import io.multiversum.db.executor.core.commands.util.ColumnResult;
 import io.multiversum.db.executor.core.commands.util.DatabaseUtility;
 import io.multiversum.db.executor.core.commands.util.ExpressionResolver;
@@ -31,8 +32,8 @@ public class SelectCommand extends BaseSqlCommand {
 	}
 
 	@Override
-	public SelectResult run(CommandQueueExecutor executor) throws Exception {
-		SelectResult result;
+	public CommandResult run(CommandQueueExecutor executor) throws Exception {
+		CommandResult result;
 		PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
 
 		if (plainSelect.getFromItem() == null) {
@@ -41,13 +42,13 @@ public class SelectCommand extends BaseSqlCommand {
 			result = remoteSelect(executor, plainSelect);
 		}
 
-		CommandStack.pushResult(result.getResult());
+		CommandStack.pushResult(result);
 
 		return result;
 	}
 
-	private SelectResult expressionOnlySelect(PlainSelect plainSelect) {
-		SelectResult result = new SelectResult();
+	private CommandResult expressionOnlySelect(PlainSelect plainSelect) {
+		CommandResult result = new CommandResult();
 
 		SelectItemResolver resolver = new SelectItemResolver();
 		for (SelectItem item : plainSelect.getSelectItems()) {
@@ -56,23 +57,22 @@ public class SelectCommand extends BaseSqlCommand {
 
 		HashMap<String, ColumnResult> expressionResult = resolver.getExpressionResult();
 
-		ArrayList<List<String>> values = new ArrayList<List<String>>();
+		List<ResultRow> values = new ArrayList<ResultRow>();
 		List<String> resultValues = new ArrayList<String>();
 		for (ColumnResult currentValue : expressionResult.values()) {
 			resultValues.add(currentValue.getValue());
 		}
 		
-		values.add(resultValues);
-
-		result.setAliases(new ArrayList<String>(expressionResult.keySet()));
-		result.setValues(values);
+		values.add(new ResultRow(null, resultValues));
+		
+		result.setResult(new ArrayList<String>(expressionResult.keySet()), values);
 
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
-	private SelectResult remoteSelect(CommandQueueExecutor executor, PlainSelect plainSelect) throws Exception {
-		SelectResult result = null;
+	private CommandResult remoteSelect(CommandQueueExecutor executor, PlainSelect plainSelect) throws Exception {
+		CommandResult result = null;
 
 		// Resolve the from statement
 		FromItemResolver fromResolver = new FromItemResolver();
@@ -129,9 +129,9 @@ public class SelectCommand extends BaseSqlCommand {
 			
 			allColumns = true;
 			
-			result.setAliases(aliases);
+			result.setColumnNames(aliases);
 		} else {
-			result.setAliases(new ArrayList<String>(resolver.getExpressionResult().keySet()));
+			result.setColumnNames(new ArrayList<String>(resolver.getExpressionResult().keySet()));
 		}
 		
 		Collection<ColumnResult> selectedValues = resolver.getExpressionResult().values();
@@ -144,15 +144,15 @@ public class SelectCommand extends BaseSqlCommand {
 		}
 
 		if (!allColumns) {
-			List<List<String>> newValues = new ArrayList<List<String>>();
+			List<ResultRow> newValues = new ArrayList<ResultRow>();
 			List<Pair<String, BigInteger>> columnIndexes = DatabaseUtility.columnIndexes(executor, columnNames, tableIndex);
 			
-			for (List<String> row : result.getValues()) {
+			for (ResultRow row : result.getRows()) {
 				List<String> newRow = new ArrayList<String>();
 				
 				for (ColumnResult res : selectedValues) {
 					if (res.isColumn()) {
-						for (String col : row) {
+						for (String col : row.getColumns()) {
 							BigInteger index = new BigInteger(col.substring(0, 1));
 							
 							boolean found = false;
@@ -176,34 +176,34 @@ public class SelectCommand extends BaseSqlCommand {
 				}
 				
 				if (newRow.size() > 0) {
-					newValues.add(newRow);
+					newValues.add(new ResultRow(null, newRow));
 				}
 			}
 			
-			result.setValues(newValues);
+			result.setRows(newValues);
 		} else {
-			List<List<String>> newValues = new ArrayList<List<String>>();
-			for (List<String> row : result.getValues()) {
+			List<ResultRow> newValues = new ArrayList<ResultRow>();
+			for (ResultRow row : result.getRows()) {
 				List<String> newRow = new ArrayList<String>();
-				for (String col : row) {
+				for (String col : row.getColumns()) {
 					newRow.add(col.substring(1));
 				}
 				
-				newValues.add(newRow);
+				newValues.add(new ResultRow(null, newRow));
 			}
 			
-			result.setValues(newValues);
+			result.setRows(newValues);
 		}
 
 		return result;
 	}
 
-	private SelectResult selectWithFixedLimit(CommandQueueExecutor executor, BigInteger tableIndex, long offset, long limit, long size) throws Exception {
-		SelectResult result = new SelectResult();
+	private CommandResult selectWithFixedLimit(CommandQueueExecutor executor, BigInteger tableIndex, long offset, long limit, long size) throws Exception {
+		CommandResult result = new CommandResult();
 
 		// Return an empty list if the offset is bigger than the data set
 		if (offset >= size) {
-			result.setValues(new ArrayList<List<String>>());
+			result.setRows(new ArrayList<ResultRow>());
 
 			return result;
 		}
@@ -213,7 +213,7 @@ public class SelectCommand extends BaseSqlCommand {
 
 		long iterations = (long) Math.ceil(limit / (double) MAX_LIMIT_PER_PAGE);
 
-		List<List<String>> rows = new ArrayList<List<String>>();
+		List<ResultRow> rows = new ArrayList<ResultRow>();
 
 		for (long i = 0; i < iterations; i++) {
 			long currentLimit = Math.min(MAX_LIMIT_PER_PAGE, size - (i * MAX_LIMIT_PER_PAGE));
@@ -222,13 +222,18 @@ public class SelectCommand extends BaseSqlCommand {
 			BigInteger bigLimit = new BigInteger("" + currentLimit);
 			BigInteger bigOffset = new BigInteger("" + currentOffset);
 
-			List<List<String>> currentRows = executor.getContract().selectAll(tableIndex, bigOffset,
+			List<List<String>> rawRows = executor.getContract().selectAll(tableIndex, bigOffset,
 					bigLimit);
+			
+			List<ResultRow> currentRows = new ArrayList<ResultRow>();
+			for (List<String> columns : rawRows) {
+				currentRows.add(new ResultRow(null, columns));
+			}
 
 			rows.addAll(currentRows);
 		}
 
-		result.setValues(rows);
+		result.setRows(rows);
 
 		return result;
 	}

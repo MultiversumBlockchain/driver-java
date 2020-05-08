@@ -3,11 +3,14 @@ package io.multiversum.db.driver.wrapper;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
+
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 
 /**
  * @see https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
@@ -17,7 +20,7 @@ public class MTVResultSet implements ResultSet {
 	
 	private int cursor = -1;
 	private int prevCursor = -1;
-	private List<List<String>> data = null;
+	private List<ResultRow> data = null;
 	private List<String> columnsSet = null;
 	
 	// TODO use a more correct structure
@@ -28,15 +31,29 @@ public class MTVResultSet implements ResultSet {
 	private boolean wasLastColumnNull = false;
 	private Statement statement;
 
-	public MTVResultSet(Statement statement, List<List<String>> data, List<String> columnsSet) {
+	public MTVResultSet(Statement statement, List<ResultRow> data, List<String> columnsSet) {
 		this.data = data;
 		this.columnsSet = columnsSet;
 		this.statement = statement;
 	}
 
-	public MTVResultSet(Statement statement, List<List<String>> data) {
+	public MTVResultSet(Statement statement, List<ResultRow> data) {
 		this.data = data;
 		this.statement = statement;
+	}
+	
+	public BigInteger getRowIndex() throws SQLException {
+		if (this.isClosed || this.data == null || this.cursor < 0 || this.cursor >= this.data.size()) {
+			throw new SQLException("Row data at cursor: " + this.cursor + " is not accessible");
+		}
+		
+		try {
+			String value = this.data.get(this.cursor).getIndex();
+			
+			return new BigInteger(value);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -1257,7 +1274,7 @@ public class MTVResultSet implements ResultSet {
 		}
 		
 		try {
-			return this.data.get(this.cursor).get(columnIndex - 1);
+			return this.data.get(this.cursor).getColumns().get(columnIndex - 1);
 		} catch (Exception e) {
 			return null;
 		}

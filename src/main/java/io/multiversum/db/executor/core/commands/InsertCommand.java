@@ -4,12 +4,17 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.insert.Insert;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 import io.multiversum.db.executor.core.commands.util.DatabaseUtility;
 import io.multiversum.db.executor.core.commands.util.InsertValuesVisitor;
+import io.multiversum.db.executor.core.contracts.Database.RowCreatedEventResponse;
 import io.multiversum.util.Pair;
 
 public class InsertCommand extends BaseSqlCommand {
@@ -22,9 +27,8 @@ public class InsertCommand extends BaseSqlCommand {
 		this.statement = statement;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public CommandResult<Boolean> run(CommandQueueExecutor executor) throws Exception {
+	public CommandResult run(CommandQueueExecutor executor) throws Exception {
 		// Get table
 		BigInteger tableIndex = DatabaseUtility.tableIndex(executor, statement.getTable().getName());
 		
@@ -37,7 +41,12 @@ public class InsertCommand extends BaseSqlCommand {
 			
 			data = visitor.getValues();
 		} else {
-			data = ((Pair<List<String>, List<List<String>>>)CommandStack.popResult()).getSecond();
+			List<ResultRow> rows = CommandStack.popResult().getRows();
+			
+			data = new ArrayList<List<String>>();
+			for (ResultRow row : rows) {
+				data.add(row.getColumns());
+			}
 		}
 		
 		if (data.size() > 1) {
@@ -64,8 +73,16 @@ public class InsertCommand extends BaseSqlCommand {
 			data.get(0).set(i, newValue);
 		}
 		
-		executor.getContract().insert(tableIndex, data.get(0)).send();
+		TransactionReceipt receipt = executor.getContract().insert(tableIndex, data.get(0)).send();
+		List<RowCreatedEventResponse> events = executor.getContract().getRowCreatedEvents(receipt);
+		RowCreatedEventResponse response = events.get(0);
 		
-		return this.<Boolean>result().setResult(true);
+		List<String> resultColumns = new ArrayList<String>();
+		List<ResultRow> resultRows = new ArrayList<ResultRow>();
+		
+		resultColumns.add("index");
+		resultRows.add(new ResultRow(response.index.toString(10)));
+		
+		return result().setResult(resultColumns, resultRows);
 	}
 }

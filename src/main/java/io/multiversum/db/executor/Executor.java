@@ -8,8 +8,8 @@ import org.web3j.tx.gas.StaticGasProvider;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
 import io.multiversum.db.executor.core.Parser;
-import io.multiversum.db.executor.core.commands.CommandResult;
 import io.multiversum.db.executor.core.commands.CommandStack;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
 import io.multiversum.db.executor.core.contracts.Database;
 
 public class Executor {
@@ -18,7 +18,7 @@ public class Executor {
 		public Web3j web3;
 		// Account's credentials, used to sign transactions
 		public Credentials credentials;
-		// Gas price (in wei) 
+		// Gas price (in wei)
 		public String gasPrice;
 		// Gas limit (in wei)
 		public String gasLimit;
@@ -36,7 +36,7 @@ public class Executor {
 	
 	private static Database database = null;
 	
-	public static CommandResult<?> singleExecution(String sql, Options options) throws Exception {
+	public static CommandResult singleExecution(String sql, Options options) throws Exception {
 		// Parse input sql query, this throws an exception an operations is unsupported.
 		// Generates a static command stack that will be executed
 		Parser.parse(sql);
@@ -50,7 +50,7 @@ public class Executor {
 		// Execute the command stack
 		cmdExecutor.execute();
 		
-		CommandResult<?> result = cmdExecutor.getLastResult();
+		CommandResult result = cmdExecutor.getLastResult();
 		
 		// Clean the command stack for future executions
 		CommandStack.clearAll();

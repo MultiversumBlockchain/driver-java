@@ -5,15 +5,15 @@ import java.util.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.multiversum.db.executor.core.commands.CommandResult;
 import io.multiversum.db.executor.core.commands.CommandStack;
 import io.multiversum.db.executor.core.commands.SqlCommand;
+import io.multiversum.db.executor.core.commands.results.CommandResult;
 import io.multiversum.db.executor.core.contracts.Database;
 
 public class CommandQueueExecutor {
 
 	private Database contract;
-	private final Stack<CommandResult<?>> resultStack = new Stack<CommandResult<?>>();
+	private final Stack<CommandResult> resultStack = new Stack<CommandResult>();
 	
 	private static final Logger log = LoggerFactory.getLogger(CommandQueueExecutor.class);
 	
@@ -28,10 +28,9 @@ public class CommandQueueExecutor {
 	public void execute() throws Exception {
 		SqlCommand cmd = CommandStack.pop();
 		while (cmd != null) {
-			CommandResult<?> result = cmd.run(this);
+			CommandResult result = cmd.run(this);
 			
-			log.debug(String.format("(%s): STATUS %s", cmd.getClass(), result.getStatus().toString()));
-			log.debug(String.format("(%s): RESULT %s", cmd.getClass(), result.getResult().toString()));
+			log.debug(String.format("\n(%s): RESULT %s", cmd.getClass(), result));
 			
 			resultStack.push(result);
 			
@@ -39,7 +38,7 @@ public class CommandQueueExecutor {
 		}
 	}
 	
-	public CommandResult<?> getLastResult() {
+	public CommandResult getLastResult() {
 		try {
 			return resultStack.pop();
 		} catch (Exception e) {
