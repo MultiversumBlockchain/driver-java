@@ -39,7 +39,7 @@ public class MTVStatement implements Statement {
 			throw new SQLException(e.getMessage());
 		}
 		
-		if (result.getRows().size() > 0) {
+		if (result.getRows() != null && result.getRows().size() > 0) {
 			return new MTVResultSet(
 				this,
 				result.getRows(),
