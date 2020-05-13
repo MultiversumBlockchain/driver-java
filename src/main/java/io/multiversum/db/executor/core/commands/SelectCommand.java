@@ -176,20 +176,38 @@ public class SelectCommand extends BaseSqlCommand {
 				}
 				
 				if (newRow.size() > 0) {
-					newValues.add(new ResultRow(null, newRow));
+					newValues.add(new ResultRow(row.getIndex(), newRow));
 				}
 			}
 			
 			result.setRows(newValues);
 		} else {
 			List<ResultRow> newValues = new ArrayList<ResultRow>();
+			List<Pair<String, BigInteger>> columnIndexes = DatabaseUtility.columnIndexes(executor, tableIndex);
+			
+			
 			for (ResultRow row : result.getRows()) {
 				List<String> newRow = new ArrayList<String>();
-				for (String col : row.getColumns()) {
-					newRow.add(col.substring(1));
+				
+				for (Pair<String, BigInteger> column : columnIndexes) {
+					boolean found = false;
+					for (String col : row.getColumns()) {
+						BigInteger index = new BigInteger(col.substring(0, 1));
+						
+						if (index.equals(column.getSecond())) {
+							found = true;
+							newRow.add(col.substring(1));
+							
+							break;
+						}
+					}
+					
+					if (!found) {
+						newRow.add(null);
+					}
 				}
 				
-				newValues.add(new ResultRow(null, newRow));
+				newValues.add(new ResultRow(row.getIndex(), newRow));
 			}
 			
 			result.setRows(newValues);
@@ -226,8 +244,11 @@ public class SelectCommand extends BaseSqlCommand {
 					bigLimit);
 			
 			List<ResultRow> currentRows = new ArrayList<ResultRow>();
-			for (List<String> columns : rawRows) {
-				currentRows.add(new ResultRow(null, columns));
+			for (int j = 0; j < rawRows.size(); j++) {
+				List<String> columns = rawRows.get(j);
+				String index = "" + (currentOffset + j + 1);
+				
+				currentRows.add(new ResultRow(index, columns));
 			}
 
 			rows.addAll(currentRows);
