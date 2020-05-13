@@ -1,7 +1,10 @@
 package io.multiversum.db.executor.core.commands;
 
 import java.math.BigInteger;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -12,10 +15,12 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import io.multiversum.db.executor.core.CommandQueueExecutor;
 import io.multiversum.db.executor.core.commands.results.CommandResult;
 import io.multiversum.db.executor.core.commands.results.ResultRow;
+import io.multiversum.db.executor.core.commands.util.ColumnInfo;
 import io.multiversum.db.executor.core.commands.util.DatabaseUtility;
 import io.multiversum.db.executor.core.commands.util.InsertValuesVisitor;
+import io.multiversum.db.executor.core.contracts.ColumnType;
 import io.multiversum.db.executor.core.contracts.Database.RowCreatedEventResponse;
-import io.multiversum.util.Pair;
+import io.multiversum.db.executor.core.exceptions.InvalidDateValueException;
 
 public class InsertCommand extends BaseSqlCommand {
 
@@ -60,12 +65,16 @@ public class InsertCommand extends BaseSqlCommand {
 			columnNames.add(column.getColumnName());
 		}
 		
-		List<Pair<String, BigInteger>> columns = DatabaseUtility.columnIndexes(executor, columnNames, tableIndex);
+		List<ColumnInfo> columns = DatabaseUtility.columns(executor, columnNames, tableIndex);
+		
 		for (int i = 0; i < data.get(0).size(); i++) {
 			String value = data.get(0).get(i);
 			int columnIndex = i % columns.size();
 			
-			BigInteger index = columns.get(columnIndex).getSecond();
+			BigInteger index = columns.get(columnIndex).getIndex();
+			ColumnType type = columns.get(columnIndex).getType();
+			
+			value = mapType(type, value);
 			
 			StringBuilder valueBuilder = new StringBuilder(value);
 			String newValue = valueBuilder.insert(0, index.byteValue()).toString();
@@ -84,5 +93,38 @@ public class InsertCommand extends BaseSqlCommand {
 		resultRows.add(new ResultRow(response.index.toString(10)));
 		
 		return result().setResult(resultColumns, resultRows);
+	}
+	
+	private String mapType(ColumnType type, String value) throws InvalidDateValueException {
+		switch (type) {
+		case Date:
+			return valueToDate(value);
+		case Datetime:
+			return valueToDateTime(value);
+		default:
+			return value;
+		}
+	}
+	
+	private String valueToDate(String value) throws InvalidDateValueException {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		
+		try {
+			Date date = format.parse(value);
+			return "" + date.getTime();
+		} catch (ParseException e) {
+			throw new InvalidDateValueException(value, "yyyy-MM-dd");
+		}
+	}
+	
+	private String valueToDateTime(String value) throws InvalidDateValueException {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+		try {
+			Date date = format.parse(value);
+			return "" + date.getTime();
+		} catch (ParseException e) {
+			throw new InvalidDateValueException(value, "yyyy-MM-dd HH:mm:ss");
+		}
 	}
 }
