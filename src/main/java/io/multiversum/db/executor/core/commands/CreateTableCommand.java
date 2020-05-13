@@ -3,10 +3,14 @@ package io.multiversum.db.executor.core.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
 import io.multiversum.db.executor.core.CommandQueueExecutor;
 import io.multiversum.db.executor.core.commands.results.CommandResult;
+import io.multiversum.db.executor.core.commands.results.ResultRow;
 import io.multiversum.db.executor.core.commands.util.DatabaseUtility;
 import io.multiversum.db.executor.core.contracts.ColumnType;
+import io.multiversum.db.executor.core.contracts.Database.TableCreatedEventResponse;
 import io.multiversum.db.executor.core.exceptions.TableNotFoundException;
 import io.multiversum.db.executor.core.exceptions.UnsupportedDataTypeException;
 import io.multiversum.db.executor.core.util.StringUtils;
@@ -45,9 +49,17 @@ public class CreateTableCommand extends BaseSqlCommand {
 		List<byte[]> columns = columnsToBytesArray();
 		byte[] tableName = StringUtils.toBytes(this.table);
 		
-		executor.getContract().createTable(tableName, columns).send();
+		TransactionReceipt receipt = executor.getContract().createTable(tableName, columns).send();
+		List<TableCreatedEventResponse> events = executor.getContract().getTableCreatedEvents(receipt);
+		TableCreatedEventResponse response = events.get(0);
 		
-		return result();
+		List<String> resultColumns = new ArrayList<String>();
+		List<ResultRow> resultRows = new ArrayList<ResultRow>();
+		
+		resultColumns.add("index");
+		resultRows.add(new ResultRow(response.index.toString(10)));
+		
+		return result().setResult(resultColumns, resultRows);
 	}
 	
 	private boolean doesTableExists(CommandQueueExecutor executor) throws Exception {
