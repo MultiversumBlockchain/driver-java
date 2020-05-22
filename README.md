@@ -27,17 +27,18 @@ Installing the driver is as simple as cloning this repository into your project.
 import java.sql.Statement;
 import java.sql.Connection;
 import java.util.Properties;
+import java.sql.SQLException;
 
 import io.multiversum.db.driver.MTVDriver;
 
 public class Foo {
-	private final String host = "127.0.0.1";
-	private final int port = 8545;
-	private final String privateKey = "0x...";
-	private final String databaseAddress = "0x...";
-	private final String connectionUri = "jdbc:mtv://%s:%d/%s?key=%s";
+	private static final String host = "127.0.0.1";
+	private static final int port = 8545;
+	private static final String privateKey = "0x...";
+	private static final String databaseAddress = "0x...";
+	private static final String connectionUri = "jdbc:mtv://%s:%d/%s?key=%s";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		String uri = String.format(connectionUri, host, port, databaseAddress, privateKey);
 		Connection conn = new MTVDriver().connect(uri, new Properties());
 		
