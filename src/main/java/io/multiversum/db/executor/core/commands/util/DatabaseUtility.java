@@ -8,6 +8,7 @@ import io.multiversum.db.executor.core.CommandQueueExecutor;
 import io.multiversum.db.executor.core.contracts.ColumnType;
 import io.multiversum.db.executor.core.exceptions.TableNotFoundException;
 import io.multiversum.util.Pair;
+import net.sf.jsqlparser.schema.Column;
 
 public class DatabaseUtility {
 
@@ -78,12 +79,19 @@ public class DatabaseUtility {
 		return result;
 	}
 	
-	public static List<ColumnInfo> columns(CommandQueueExecutor executor, List<String> columns, BigInteger tableIndex) throws Exception {
+	public static List<ColumnInfo> columns(CommandQueueExecutor executor, List<?> columns, BigInteger tableIndex) throws Exception {
 		List<ColumnInfo> result = new ArrayList<ColumnInfo>();
 		List<ColumnInfo> desc = columns(executor, tableIndex);
 		
 		for (ColumnInfo col : desc) {
-			for (String name : columns) {
+			for (Object requested : columns) {
+				String name = null;
+				if (requested instanceof Column) {
+					name = ((Column) requested).getName(false);
+				} else {
+					name = (String) requested;
+				}
+				
 				if (col.getName().equals(name)) {
 					result.add(col);
 				}

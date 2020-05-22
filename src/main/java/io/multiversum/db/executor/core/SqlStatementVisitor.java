@@ -4,10 +4,13 @@ import java.util.List;
 
 import io.multiversum.db.executor.core.commands.CommandStack;
 import io.multiversum.db.executor.core.commands.CreateTableCommand;
+import io.multiversum.db.executor.core.commands.DeleteFromCommand;
+import io.multiversum.db.executor.core.commands.DropTableCommand;
 import io.multiversum.db.executor.core.commands.InsertCommand;
 import io.multiversum.db.executor.core.commands.SelectCommand;
 import io.multiversum.db.executor.core.commands.ShowTablesCommand;
 import io.multiversum.db.executor.core.commands.SqlCommand;
+import io.multiversum.db.executor.core.commands.UpdateCommand;
 import io.multiversum.db.executor.core.commands.util.InsertValuesVisitor;
 import io.multiversum.db.executor.core.commands.util.SelectResolver;
 import net.sf.jsqlparser.statement.Block;
@@ -56,12 +59,12 @@ public class SqlStatementVisitor implements StatementVisitor {
 
 	@Override
 	public void visit(Delete delete) {
-		// TODO Auto-generated method stub
+		push(new DeleteFromCommand(parent(), delete));
 	}
 
 	@Override
 	public void visit(Update update) {
-		// TODO Auto-generated method stub
+		push(new UpdateCommand(parent(), update));
 	}
 
 	@Override
@@ -83,7 +86,7 @@ public class SqlStatementVisitor implements StatementVisitor {
 
 	@Override
 	public void visit(Drop drop) {
-		// TODO Auto-generated method stub
+		push(new DropTableCommand(parent(), drop));
 	}
 
 	@Override
@@ -93,7 +96,7 @@ public class SqlStatementVisitor implements StatementVisitor {
 
 	@Override
 	public void visit(CreateIndex createIndex) {
-		// Don't do anything		
+		// Don't do anything
 	}
 
 	@Override
