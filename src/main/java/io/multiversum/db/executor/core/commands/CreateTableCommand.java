@@ -1,5 +1,6 @@
 package io.multiversum.db.executor.core.commands;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,10 @@ public class CreateTableCommand extends BaseSqlCommand {
 	
 	@Override
 	public CommandResult run(CommandQueueExecutor executor) throws Exception {
+		if (table.length() <= 0) {
+			throw new InvalidParameterException("Table name must not be empty");
+		}
+		
 		if (ifNotExists) {
 			if (doesTableExists(executor)) {
 				return result();
