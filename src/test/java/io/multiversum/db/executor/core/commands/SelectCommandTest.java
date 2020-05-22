@@ -4,17 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.web3j.EVMTest;
 
 import io.multiversum.db.executor.core.CommandQueueExecutor;
-import io.multiversum.db.executor.core.util.StringUtils;
 
 @EVMTest
 class SelectCommandTest extends BaseCommandTest {
 
 	@Test
 	void test() throws Exception {
-		contract.createSchema(StringUtils.toBytes("test_db")).send();
-		
-		String sql = "use test_db;" +
-				"create table test_table (id int, name varchar, lastname varchar, salary double);" +
+		String sql = "create table test_table (id int, name varchar, lastname varchar, salary double);" +
 				"insert into test_table (id, name, lastname, salary) values (1, 'john', 'doe', 3500.5);";
 		
 		CommandQueueExecutor exec = Executor(sql);
