@@ -42,6 +42,14 @@ public class MTVResultSet implements ResultSet {
 		this.statement = statement;
 	}
 	
+	public int getSetSize() throws SQLException {
+		if (data == null || isClosed) {
+			throw new SQLException("Result set is closed or empty");
+		}
+		
+		return data.size();
+	}
+	
 	public BigInteger getRowIndex() throws SQLException {
 		if (this.isClosed || this.data == null || this.cursor < 0 || this.cursor >= this.data.size()) {
 			throw new SQLException("Row data at cursor: " + this.cursor + " is not accessible");
