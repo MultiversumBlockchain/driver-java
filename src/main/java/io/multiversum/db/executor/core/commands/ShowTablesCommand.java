@@ -36,6 +36,10 @@ public class ShowTablesCommand extends BaseSqlCommand {
 			String index = "" + wrapper.getLong();
 			String name = new String(tables.get(i + 1)).trim();
 			
+			if (name.length() == 0) {
+				continue;
+			}
+			
 			List<String> columns = new ArrayList<String>();
 			columns.add(name);
 			
