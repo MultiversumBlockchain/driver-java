@@ -188,6 +188,7 @@ public class SelectCommand extends BaseSqlCommand {
 			
 			for (ResultRow row : result.getRows()) {
 				List<String> newRow = new ArrayList<String>();
+				boolean rowIsEmpty = true;
 				
 				for (Pair<String, BigInteger> column : columnIndexes) {
 					boolean found = false;
@@ -196,6 +197,8 @@ public class SelectCommand extends BaseSqlCommand {
 						
 						if (index.equals(column.getSecond())) {
 							found = true;
+							rowIsEmpty = false;
+							
 							newRow.add(col.substring(1));
 							
 							break;
@@ -207,7 +210,9 @@ public class SelectCommand extends BaseSqlCommand {
 					}
 				}
 				
-				newValues.add(new ResultRow(row.getIndex(), newRow));
+				if (!rowIsEmpty) {
+					newValues.add(new ResultRow(row.getIndex(), newRow));
+				}
 			}
 			
 			result.setRows(newValues);
