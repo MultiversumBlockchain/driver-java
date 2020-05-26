@@ -43,6 +43,12 @@ public class MTVConnection implements Connection {
 	private String schema;
 	private int transactionIsolationLevel;
 	
+	private String gasPrice = null;
+	private String gasLimit = null;
+	
+	private static final String DEFAULT_GAS_PRICE = "20000000000";
+	private static final String DEFAULT_GAS_LIMIT = "6721975";
+	
 	private static final Logger log = LoggerFactory.getLogger(MTVConnection.class);
 	
 	public MTVConnection(String host, int port, String schema, Credentials credentials)  throws Exception {
@@ -68,6 +74,30 @@ public class MTVConnection implements Connection {
 	
 	public Credentials getCredentials() {
 		return this.credentials;
+	}
+	
+	public String gasPrice() {
+		if (gasPrice == null) {
+			return DEFAULT_GAS_PRICE;
+		}
+		
+		return gasPrice;
+	}
+	
+	public String gasLimit() {
+		if (gasLimit == null) {
+			return DEFAULT_GAS_LIMIT;
+		}
+		
+		return gasLimit;
+	}
+	
+	public void setGasPrice(String price) {
+		gasPrice = price;
+	}
+	
+	public void setGasLimit(String limit) {
+		gasLimit = limit;
 	}
 	
 	private Web3j connectToNode() throws Exception {

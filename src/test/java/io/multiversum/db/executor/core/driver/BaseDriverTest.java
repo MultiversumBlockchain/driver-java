@@ -1,6 +1,7 @@
 package io.multiversum.db.executor.core.driver;
 
 import java.sql.Connection;
+import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.web3j.crypto.Credentials;
@@ -27,7 +28,7 @@ public class BaseDriverTest {
 	}
 	
 	protected Connection connection() throws Exception {
-		return new MTVDriver().connect(web3, credentials, schemaAddress);
+		return new MTVDriver().connect(web3, credentials, schemaAddress, new Properties());
 	}
 
 }

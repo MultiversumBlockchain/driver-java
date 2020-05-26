@@ -32,7 +32,7 @@ public class MTVDriver implements java.sql.Driver {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MTVDriver.class);
 	
-	public Connection connect(String paramString, Properties paramProperties) throws SQLException {
+	public Connection connect(String paramString, Properties properties) throws SQLException {
 		String uriString = paramString;
 		// Remote JDBC protocol prefix if present
 		if (paramString.startsWith(PROTOCOL_LONG)) {
@@ -86,7 +86,11 @@ public class MTVDriver implements java.sql.Driver {
 			}
 
 			// Create new connection
-			return new MTVConnection(host, port, uri.getPath().substring(1), credentials);
+			MTVConnection connection = new MTVConnection(host, port, uri.getPath().substring(1), credentials);
+			
+			setPropertiesToConnect(connection, properties);
+			
+			return connection;
 		} catch (Exception e) {
 			e.printStackTrace();
 			
@@ -94,14 +98,30 @@ public class MTVDriver implements java.sql.Driver {
 		}
 	}
 	
-	public Connection connect(Web3j web3, Credentials credentials, String schema) throws SQLException {
+	public Connection connect(Web3j web3, Credentials credentials, String schema, Properties properties) throws SQLException {
+		log.debug("Conneting using web3 provider");
+		
 		try {
 			// Create new connection
-			return new MTVConnection(web3, credentials, schema);
+			MTVConnection connection = new MTVConnection(web3, credentials, schema);
+			
+			setPropertiesToConnect(connection, properties);
+			
+			return connection;
 		} catch (Exception e) {
 			e.printStackTrace();
 			
 			throw new SQLException("Failed to initialize connection");
+		}
+	}
+	
+	private void setPropertiesToConnect(MTVConnection connection, Properties properties) {
+		if (properties.containsKey("gas_price")) {
+			connection.setGasPrice((String) properties.get("gas_price"));
+		}
+		
+		if (properties.containsKey("gas_limit")) {
+			connection.setGasLimit((String) properties.get("gas_limit"));
 		}
 	}
 

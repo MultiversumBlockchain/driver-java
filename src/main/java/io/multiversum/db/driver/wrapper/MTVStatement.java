@@ -27,8 +27,8 @@ public class MTVStatement implements Statement {
 			Options options = new Options(
 					this.connection.getWeb3(),
 					this.connection.getCredentials(),
-					"20000000000", // TODO: read from config
-					"6721975", // TODO: read from config
+					this.connection.gasPrice(),
+					this.connection.gasLimit(),
 					this.connection.getSchema().trim()
 			);
 			
